@@ -1,6 +1,6 @@
 // src/Components/Dashboard/Header.js
 import React from 'react';
-import { AppBar, Toolbar, IconButton, Typography, InputBase, Box } from '@mui/material';
+import { AppBar, Toolbar, IconButton, InputBase, Box } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import Avatar from '@mui/material/Avatar';
