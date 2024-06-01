@@ -1,89 +1,163 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import Box from '@mui/material/Box';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Grid, Paper, Typography } from '@mui/material';
+import * as React from "react";
+import { useState, useEffect } from "react";
+import Box from "@mui/material/Box";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { Grid, Paper, Typography } from "@mui/material";
 import { formatCurrency } from "../utils/utils";
-import axios from 'axios';
+import axios from "axios";
+import Modal from "@mui/material/Modal";
+import { idText } from "typescript";
+import { idID } from "@mui/material/locale";
 
-
-const rows = [
-  { id: 1, icon: 'Snow', tipo: 'Entrada', monto: 1400, fecha:'Mayo, 2024 a las 15:17' },
-  { id: 2, icon: 'Lannister', tipo: 'Salida', monto: 310, fecha:'Mayo, 2024 a las 15:17'},
-  { id: 3, icon: 'Lannister', tipo: 'Salida', monto: 2500, fecha:'Mayo, 2024 a las 15:17' },
-  { id: 4, icon: 'Stark', tipo: 'Salida', monto: 110, fecha:'Mayo, 2024 a las 15:17' },
-  { id: 5, icon: 'Targaryen', tipo: 'Entrada', monto: 200, fecha:'Mayo, 2024 a las 15:17' },
-  { id: 6, icon: 'Melisandre', tipo: null, monto: 1852, fecha:'Mayo, 2024 a las 15:17' },
-  { id: 7, icon: 'Clifford', tipo: 'Salida', monto: 400, fecha:'Mayo, 2024 a las 15:17' },
-  { id: 8, icon: 'Frances', tipo: 'Entrada', monto: 600, fecha:'Mayo, 2024 a las 15:17' },
-  { id: 9, icon: 'Roxie', tipo: 'Entrada', monto: 9500, fecha:'Mayo, 2024 a las 15:17' },
-];
+const style = {
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
 
 export default function DataGridDemo() {
-    const [rows2, setRows2] = useState([]);
+  const [rows2, setRows2] = useState([]);
+  const [caracteres, setCaracteres] = useState<Character[]>([]);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
+    null
+  );
+  const [open, setOpen] = useState(false);
 
-    useEffect(() => {
-        // Función para obtener datos desde la API    
-        fetchData();
-      }, []);
-
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('https://rickandmortyapi.com/api/character');
-        const data = response.data.results;
-        console.log(data);
-        setRows2(data);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
+  interface Character {
+    id: number;
+    name: string;
+    image: string;
+    species: string;
+    status: string;
+    location: {
+      name: string;
     };
-    
-    const columns: GridColDef[] = [
-        { field: 'id', headerName: 'ID', width: 90 },
-        {
-            field: 'icon',
-            headerName: 'Tipo',
-            width: 150,
-            editable: true,
-        },
-        {
-            field: 'name',
-            headerName: 'Episodio',
-            width: 150,
-            editable: true,
-        },
-        {
-            field: 'monto',
-            headerName: 'Cantidad',
-            type: 'number',
-            width: 110,
-            valueGetter: (params:any) => {
-            return formatCurrency(params);
-            }
-        }
-    ];
-    
-    return (
-        <Box>
-            <Paper>
-                <Grid item xs={12} md={12} lg={12}>
-                    <Typography><strong>Movimientos</strong></Typography>
-                </Grid>
-                <Grid item xs={12} md={12} lg={12}>
-                    <DataGrid
-                        rows={rows2}
-                        columns={columns}
-                        initialState={{
-                        pagination: {
-                            paginationModel: {
-                            pageSize: 5,
-                            },
-                        },
-                        }}
-                        pageSizeOptions={[5]}
-                    />
-                </Grid>            
-            </Paper>
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        "https://rickandmortyapi.com/api/character"
+      );
+      const data = response.data.results;
+      console.log(data);
+      setRows2(data);
+      setCaracteres(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const handleOpen = (character: Character) => {
+    setSelectedCharacter(character);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedCharacter(null);
+  };
+
+  const columns: GridColDef[] = [
+    { field: "id", headerName: "ID", width: 90 },
+    {
+      field: "name",
+      headerName: "Nombre",
+      width: 150,
+      editable: true,
+    },
+    {
+      field: "species",
+      headerName: "Especie",
+      width: 150,
+      editable: true,
+    },
+    {
+      field: "status",
+      headerName: "Estado",
+      type: "string",
+      width: 110,
+      editable: true,
+    },
+    {
+      field: "button",
+      headerName: "Modal",
+      width: 150,
+      renderCell: (params) => (
+        <strong>
+          <button
+            onClick={() => {
+              handleOpen(params.row);
+            }}
+          >
+            Ver más información
+          </button>
+        </strong>
+      ),
+    },
+  ];
+
+  return (
+    <Box>
+      <Paper>
+        <Grid item xs={12} md={12} lg={12}>
+          <Typography>
+            <strong>Movimientos</strong>
+          </Typography>
+        </Grid>
+        <Grid item xs={12} md={12} lg={12}>
+          <DataGrid
+            rows={rows2}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 5,
+                },
+              },
+            }}
+            pageSizeOptions={[5]}
+          />
+        </Grid>
+      </Paper>
+
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          {selectedCharacter && (
+            <>
+              <h2 id="modal-modal-title">{selectedCharacter.name}</h2>
+              <p id="modal-modal-description">
+                <img
+                  src={selectedCharacter.image}
+                  alt={selectedCharacter.name}
+                  width="100"
+                />
+                <br />
+                Especie: {selectedCharacter.species}
+                <br />
+                Estado: {selectedCharacter.status}
+                <br />
+                Ubicación: {selectedCharacter.location.name}
+              </p>
+            </>
+          )}
         </Box>
-    );
+      </Modal>
+    </Box>
+  );
 }
